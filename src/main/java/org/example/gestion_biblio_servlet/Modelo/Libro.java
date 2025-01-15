@@ -1,4 +1,4 @@
-package org.example.gestion_biblio_servlet;
+package org.example.gestion_biblio_servlet.Modelo;
 
 import jakarta.persistence.*;
 

@@ -1,4 +1,4 @@
-package org.example.gestion_biblio_servlet;
+package org.example.gestion_biblio_servlet.Modelo;
 
 import jakarta.persistence.*;
 
@@ -14,7 +14,7 @@ public class Prestamo {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "usuario_id", nullable = false)
-    private org.example.gestion_biblio_servlet.Usuario usuario;
+    private Usuario usuario;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ejemplar_id", nullable = false)
@@ -34,11 +34,11 @@ public class Prestamo {
         this.id = id;
     }
 
-    public org.example.gestion_biblio_servlet.Usuario getUsuario() {
+    public Usuario getUsuario() {
         return usuario;
     }
 
-    public void setUsuario(org.example.gestion_biblio_servlet.Usuario usuario) {
+    public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
     }
 

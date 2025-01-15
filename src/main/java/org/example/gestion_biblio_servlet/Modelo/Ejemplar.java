@@ -1,4 +1,4 @@
-package org.example.gestion_biblio_servlet;
+package org.example.gestion_biblio_servlet.Modelo;
 
 import jakarta.persistence.*;
 
@@ -15,14 +15,14 @@ public class Ejemplar {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "isbn", nullable = false)
-    private org.example.gestion_biblio_servlet.Libro isbn;
+    private Libro isbn;
 
     @Lob
     @Column(name = "estado")
     private String estado;
 
     @OneToMany(mappedBy = "ejemplar")
-    private Set<org.example.gestion_biblio_servlet.Prestamo> prestamos = new LinkedHashSet<>();
+    private Set<Prestamo> prestamos = new LinkedHashSet<>();
 
     public Integer getId() {
         return id;
@@ -32,11 +32,11 @@ public class Ejemplar {
         this.id = id;
     }
 
-    public org.example.gestion_biblio_servlet.Libro getIsbn() {
+    public Libro getIsbn() {
         return isbn;
     }
 
-    public void setIsbn(org.example.gestion_biblio_servlet.Libro isbn) {
+    public void setIsbn(Libro isbn) {
         this.isbn = isbn;
     }
 
@@ -48,11 +48,11 @@ public class Ejemplar {
         this.estado = estado;
     }
 
-    public Set<org.example.gestion_biblio_servlet.Prestamo> getPrestamos() {
+    public Set<Prestamo> getPrestamos() {
         return prestamos;
     }
 
-    public void setPrestamos(Set<org.example.gestion_biblio_servlet.Prestamo> prestamos) {
+    public void setPrestamos(Set<Prestamo> prestamos) {
         this.prestamos = prestamos;
     }
 

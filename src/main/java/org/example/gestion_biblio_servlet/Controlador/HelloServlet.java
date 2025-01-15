@@ -1,4 +1,5 @@
-package org.example.gestion_biblio_servlet;
+package org.example.gestion_biblio_servlet.Controlador;
+
 
 import java.io.*;
 
