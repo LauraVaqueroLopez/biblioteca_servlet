@@ -1,6 +1,10 @@
 package org.example.gestion_biblio_servlet.Modelo;
 
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
 
@@ -12,12 +16,16 @@ public class Prestamo {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "usuario_id", nullable = false)
+    @JsonBackReference
     private Usuario usuario;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "ejemplar_id", nullable = false)
+    @JsonBackReference
     private Ejemplar ejemplar;
 
     @Column(name = "fechaInicio", nullable = false)
@@ -25,6 +33,15 @@ public class Prestamo {
 
     @Column(name = "fechaDevolucion")
     private LocalDate fechaDevolucion;
+
+    public Prestamo(){}
+
+    public Prestamo(Usuario usuario, Ejemplar ejemplar, LocalDate fechaInicio){
+        this.usuario=usuario;
+        this.ejemplar=ejemplar;
+        this.fechaInicio=fechaInicio;
+        this.fechaDevolucion=fechaInicio.plusDays(15);
+    }
 
     public Integer getId() {
         return id;
@@ -66,4 +83,14 @@ public class Prestamo {
         this.fechaDevolucion = fechaDevolucion;
     }
 
+    @Override
+    public String toString() {
+        return "Prestamo{" +
+                "id=" + id +
+                ", usuario=" + usuario.getNombre() +
+                ", ejemplar=" + ejemplar.getId() +
+                ", fechaInicio=" + fechaInicio +
+                ", fechaDevolucion=" + fechaDevolucion +
+                "\n}";
+    }
 }

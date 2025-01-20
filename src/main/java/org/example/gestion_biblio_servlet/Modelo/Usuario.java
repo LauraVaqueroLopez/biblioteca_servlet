@@ -1,9 +1,13 @@
 package org.example.gestion_biblio_servlet.Modelo;
 
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -34,7 +38,25 @@ public class Usuario {
     private LocalDate penalizacionHasta;
 
     @OneToMany(mappedBy = "usuario")
-    private Set<Prestamo> prestamos = new LinkedHashSet<>();
+    @JsonManagedReference
+    private List<Prestamo> prestamos;
+
+    public Usuario(){}
+
+    public Usuario(String dni, String nombre, String password, String tipo){
+        this.dni=dni;
+        this.nombre=nombre;
+        this.password=password;
+        this.tipo=tipo;
+    }
+
+    public Usuario(String dni, String nombre, String password, String tipo, LocalDate penalizacionHasta){
+        this.dni=dni;
+        this.nombre=nombre;
+        this.password=password;
+        this.tipo=tipo;
+        this.penalizacionHasta=penalizacionHasta;
+    }
 
     public Integer getId() {
         return id;
@@ -88,16 +110,44 @@ public class Usuario {
         return penalizacionHasta;
     }
 
+    public int getPrestamosActivos(){
+        int contador=0;
+        LocalDate fecha_actual = LocalDate.now();
+        for(int i=0;i<this.prestamos.size();i++){
+            if(prestamos.get(i).getFechaDevolucion().isAfter(fecha_actual)){
+                contador++;
+            }
+        }
+        return contador;
+    }
+
     public void setPenalizacionHasta(LocalDate penalizacionHasta) {
         this.penalizacionHasta = penalizacionHasta;
     }
 
-    public Set<Prestamo> getPrestamos() {
+    public List<Prestamo> getPrestamos() {
         return prestamos;
     }
 
-    public void setPrestamos(Set<Prestamo> prestamos) {
+    public void setPrestamos(List<Prestamo> prestamos) {
         this.prestamos = prestamos;
     }
 
+    public boolean validarDni (){
+        //Lógica de comprobación del dni.
+        return true;
+    }
+    @Override
+    public String toString() {
+        return "Usuario{" +
+                "id=" + id +
+                ", dni='" + dni + '\'' +
+                ", nombre='" + nombre + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", tipo='" + tipo + '\'' +
+                ", penalizacionHasta=" + penalizacionHasta +
+                ", prestamos=" + prestamos +
+                "\n}";
+    }
 }

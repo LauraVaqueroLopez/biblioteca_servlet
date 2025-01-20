@@ -1,9 +1,10 @@
 package org.example.gestion_biblio_servlet.Modelo;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "libro")
@@ -18,14 +19,17 @@ public class Libro {
     @Column(name = "autor", nullable = false, length = 100)
     private String autor;
 
-    @OneToMany(mappedBy = "isbn")
-    private Set<Ejemplar> ejemplars = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "libro")
+    @JsonManagedReference
+    private List<Ejemplar> ejemplares = new ArrayList<>();
 
-    public Libro(String isbn, String titulo, String autor) {
+    public Libro(){
     }
 
-    public Libro() {
-
+    public Libro(String isbn, String titulo, String autor) {
+        this.isbn = isbn;
+        this.titulo = titulo;
+        this.autor = autor;
     }
 
     public String getIsbn() {
@@ -52,12 +56,21 @@ public class Libro {
         this.autor = autor;
     }
 
-    public Set<Ejemplar> getEjemplars() {
-        return ejemplars;
+    public List<Ejemplar> getEjemplares() {
+        return ejemplares;
     }
 
-    public void setEjemplars(Set<Ejemplar> ejemplars) {
-        this.ejemplars = ejemplars;
+    public void setEjemplares(List<Ejemplar> ejemplars) {
+        this.ejemplares = ejemplars;
     }
 
+    @Override
+    public String toString() {
+        return "Libro{" +
+                "isbn='" + isbn + '\'' +
+                ", titulo='" + titulo + '\'' +
+                ", autor='" + autor + '\'' +
+                ", ejemplares=" + ejemplares +
+                '}';
+    }
 }
