@@ -1,6 +1,5 @@
 package org.example.gestion_biblio_servlet.Modelo;
 
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
