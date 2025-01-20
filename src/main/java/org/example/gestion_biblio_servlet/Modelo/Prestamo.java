@@ -1,6 +1,5 @@
 package org.example.gestion_biblio_servlet.Modelo;
 
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;

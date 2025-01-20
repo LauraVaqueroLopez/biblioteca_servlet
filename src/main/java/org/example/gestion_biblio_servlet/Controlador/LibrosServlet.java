@@ -1,112 +1,171 @@
 package org.example.gestion_biblio_servlet.Controlador;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.gestion_biblio_servlet.Modelo.DAOGenerico;
 import org.example.gestion_biblio_servlet.Modelo.Libro;
+import org.example.gestion_biblio_servlet.Modelo.LibroDAO;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
-@WebServlet(name = "librosServlet", value = "/libros-servlet")
+@WebServlet(name = "librosServlet", value = "/api/libro")
 public class LibrosServlet extends HttpServlet {
 
-    DAOGenerico<Libro, String> daolibro;
+    private LibroDAO libroDAO;
+    private ObjectMapper objectMapper;
 
-    public void init(){
-        daolibro = new DAOGenerico<>(Libro.class,String.class);
+    @Override
+    public void init() throws ServletException {
+        libroDAO = new LibroDAO();
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("application/json");
-        PrintWriter impresora = response.getWriter();
-        ObjectMapper conversorJson = new ObjectMapper();
-        conversorJson.registerModule(new JavaTimeModule());
+        PrintWriter out = response.getWriter();
 
-        String action = request.getParameter("action");
-        String json_response = "";
+        String isbn = request.getParameter("isbn");
 
-        switch (action) {
-            case "add":
-                String isbn = request.getParameter("isbn");
-                String titulo = request.getParameter("titulo");
-                String autor = request.getParameter("autor");
-
-                Libro libroToAdd = new Libro(isbn, titulo, autor);
-
-                boolean addResult = daolibro.add(libroToAdd);
-
-                json_response = conversorJson.writeValueAsString(
-                        addResult ? "Libro agregado correctamente" : "Error al agregar libro"
-                );
-                break;
-
-            case "update":
-                String isbnToUpdate = request.getParameter("isbn");
-                String newTitulo = request.getParameter("titulo");
-                String newAutor = request.getParameter("autor");
-
-                Libro libroToUpdate = new Libro(isbnToUpdate, newTitulo, newAutor);
-
-                Libro updatedLibro = daolibro.update(libroToUpdate);
-                json_response = conversorJson.writeValueAsString(
-                        updatedLibro != null ? updatedLibro : "Error al actualizar libro"
-                );
-                break;
-
-            case "delete":
-                String isbnToDelete = request.getParameter("isbn");
-
-                Libro libroToDelete = daolibro.getById(isbnToDelete);
-
-                if (libroToDelete != null) {
-                    boolean deleteResult = daolibro.deleteUsuario(libroToDelete);
-
-                    json_response = conversorJson.writeValueAsString(
-                            deleteResult ? "Libro eliminado correctamente" : "Error al eliminar libro"
-                    );
+        try {
+            if (isbn != null && !isbn.isEmpty()) {
+                Libro libro = libroDAO.getById(isbn);
+                if (libro != null) {
+                    String jsonResponse = objectMapper.writeValueAsString(libro);
+                    out.println(jsonResponse);
                 } else {
-                    json_response = conversorJson.writeValueAsString("Libro no encontrado");
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    out.println("{\"error\": \"Libro no encontrado\"}");
                 }
-                break;
-
-            case "select":
-                String isbnToSelect = request.getParameter("isbn");
-                Libro libro = daolibro.getById(isbnToSelect);
-                json_response = conversorJson.writeValueAsString(libro != null ? libro : "Libro no encontrado");
-                break;
-
-            default:
-                json_response = conversorJson.writeValueAsString("Acción no válida");
-                break;
+            } else {
+                List<Libro> listaLibros = libroDAO.getAll();
+                if (listaLibros != null && !listaLibros.isEmpty()) {
+                    String jsonResponse = objectMapper.writeValueAsString(listaLibros);
+                    out.println(jsonResponse);
+                } else {
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    out.println("{\"error\": \"No se encontraron libros\"}");
+                }
+            }
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            out.println("{\"error\": \"Error al procesar la solicitud\"}");
         }
 
-        System.out.println("Respuesta JSON: " + json_response);
-        impresora.println(json_response);
     }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String isbn = request.getParameter("isbn");
+        String titulo = request.getParameter("titulo");
+        String autor = request.getParameter("autor");
+
+
         response.setContentType("application/json");
+        PrintWriter out = response.getWriter();
 
-        PrintWriter impresora = response.getWriter();
-        ObjectMapper conversorJson = new ObjectMapper();
-        conversorJson.registerModule(new JavaTimeModule());
+        Libro libro = new Libro(isbn, titulo, autor);
 
-        List<Libro> listaLibros  = daolibro.getAll();
-        System.out.println("En java" + listaLibros);
-
-        String json_response = conversorJson.writeValueAsString(listaLibros);
-        System.out.println("En java json" + json_response);
-        impresora.println(json_response);
-
+        if (libroDAO.add(libro)) {
+            response.setStatus(HttpServletResponse.SC_CREATED);
+            out.println("{\"message\": \"Libro creado con éxito\"}");
+        } else {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.println("{\"error\": \"No se pudo crear el libro\"}");
+        }
     }
 
-    public void destroy(){
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("application/json");
+        PrintWriter out = response.getWriter();
+
+        String isbn = request.getParameter("isbn");
+        String titulo = request.getParameter("titulo");
+        String autor = request.getParameter("autor");
+
+        try {
+            if (isbn != null && !isbn.isEmpty()) {
+                Libro libroExistente = libroDAO.getById(isbn);
+
+                if (libroExistente != null) {
+                    if (titulo != null && !titulo.isEmpty()) {
+                        libroExistente.setTitulo(titulo);
+                    }
+                    if (autor != null && !autor.isEmpty()) {
+                        libroExistente.setAutor(autor);
+                    }
+
+                    if (libroDAO.update(libroExistente)) {
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.println("{\"message\": \"Libro actualizado con éxito\"}");
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                        out.println("{\"error\": \"Error al actualizar el libro\"}");
+                    }
+                } else {
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    out.println("{\"error\": \"Libro no encontrado\"}");
+                }
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.println("{\"error\": \"Se debe proporcionar un ISBN válido\"}");
+            }
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            out.println("{\"error\": \"Error al procesar la solicitud\"}");
+        }
+    }
+
+
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("application/json");
+        PrintWriter out = response.getWriter();
+
+        // Obtener el parámetro ISBN
+        String isbn = request.getParameter("isbn");
+
+        try {
+            if (isbn != null && !isbn.isEmpty()) {
+                // Verificar si el libro existe
+                Libro libroExistente = libroDAO.getById(isbn);
+
+                if (libroExistente != null) {
+                    // Intentar eliminar el libro
+                    if (libroDAO.delete(libroExistente)) {
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.println("{\"message\": \"Libro eliminado con éxito\"}");
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                        out.println("{\"error\": \"Error al eliminar el libro\"}");
+                    }
+                } else {
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    out.println("{\"error\": \"Libro no encontrado\"}");
+                }
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.println("{\"error\": \"Se debe proporcionar un ISBN válido\"}");
+            }
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            out.println("{\"error\": \"Error al procesar la solicitud\"}");
+        }
+    }
+
+
+    @Override
+    public void destroy() {
+        libroDAO.close();
     }
 }
